@@ -1,0 +1,7 @@
+gcc
+-Wall
+-Wextra
+-Wpedantic
+-Werror
+-std=c11
+
