@@ -13,6 +13,8 @@
 #elif defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#else
+#error "Platform not supported"
 #endif
 
 static _Thread_local CoroRegisters coro_root_ = {0};
