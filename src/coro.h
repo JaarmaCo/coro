@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdnoreturn.h>
 
 typedef struct Coro Coro;
 
@@ -31,7 +30,7 @@ coro_reset(Coro *coro);
 void
 coro_free(Coro *coro);
 
-noreturn void
+_Noreturn void
 coro_exit(void);
 
 bool

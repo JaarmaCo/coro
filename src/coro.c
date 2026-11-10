@@ -7,8 +7,13 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/mman.h>
+#elif defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 static _Thread_local CoroRegisters coro_root_ = {0};
 static _Thread_local Coro *volatile coro_this_ = 0;
@@ -24,12 +29,18 @@ void coro_execute_(void) {
 }
 
 size_t coro_page_size(void) {
+#ifdef __linux__
     long size = sysconf(_SC_PAGESIZE);
     if (size < 0) {
         perror("sysconf");
         exit(1);
     }
     return (size_t)size;
+#elif defined(_WIN32)
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    return (size_t)sysinfo.dwPageSize;
+#endif
 }
 
 void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *stack_offset, size_t *stack_size) {
@@ -42,23 +53,43 @@ void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *s
         len += page_size - (len % page_size);
     }
 
+    void *full_allocation;
+#ifdef __linux__
     // Allocate both guard pages, and the stack
-    void *full_allocation = mmap(NULL, page_size + len + page_size,
-                                 PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    full_allocation = mmap(NULL, page_size + len + page_size,
+                           PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (full_allocation == MAP_FAILED) {
         return NULL;
     }
+#elif defined(_WIN32)
+
+    full_allocation = VirtualAlloc(NULL, page_size + len + page_size, 0, PAGE_GUARD);
+    if (NULL == full_allocation) {
+        return NULL;
+    }
+#endif
 
     // Put the stack between both guard pages.
     void *guard_page_end = (void *)((uintptr_t)full_allocation + page_size);
-    void *stack_page = mmap(guard_page_end, len,
-                            PROT_READ | PROT_WRITE,
-                            MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
-                            -1, 0);
+    void *stack_page;
+#ifdef __linux__
+    stack_page = mmap(guard_page_end, len,
+                      PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+                      -1, 0);
     if (stack_page == MAP_FAILED) {
         munmap(full_allocation, page_size + len + page_size);
         return NULL;
     }
+#elif defined(_WIN32)
+    stack_page = VirtualAlloc(guard_page_end, len,
+                              MEM_COMMIT | MEM_RESERVE,
+                              PAGE_READWRITE);
+    if (NULL == stack_page) {
+        VirtualFree(full_allocation, page_size + len + page_size, MEM_RELEASE);
+        return NULL;
+    }
+#endif
 
     *stack_offset = page_size;
     *stack_size = len;
@@ -126,9 +157,12 @@ void coro_free(Coro *coro) {
     }
 
     assert(coro->state == CORO_RESET || coro->state == CORO_EXITED);
-    
+   
+#ifdef __linux__
     munmap(coro->stack_mapping, coro->mapping_size);
-    
+#elif defined(_WIN32)
+    VirtualFree(coro->stack_mapping, coro->mapping_size, MEM_RELEASE);
+#endif
     memset(coro, 0, sizeof *coro);
     free(coro);
 }
