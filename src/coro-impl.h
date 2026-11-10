@@ -30,8 +30,10 @@ struct Coro {
     void *arg;
     void(*entrypoint)(void *);
 
+    void *stack_mapping;
+    size_t mapping_size;
+    size_t stack_offset;
     size_t stack_size;
-    void *stack_begin;
 };
 
 // Make new_context active and store a restorable context to old_context
