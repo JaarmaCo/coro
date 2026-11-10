@@ -1,0 +1,39 @@
+.code
+
+PUBLIC coro_exchange_
+
+; void coro_exchange_(CoroRegisters *old_context /* rcx */, CoroRegisters *new_context /* rdx */)
+coro_exchange_ PROC
+    
+    ; Save return address to old_context->rip
+    mov [rsp], rax ; rax = stack_pointer[RET_OFFSET]
+    mov rax, [rcx] ; old_context->rip = rax
+
+    ; Save stack pointer to old_context->rsp
+    mov [rsp + 8], rax  ; rax = stack_pointer[SP_OFFSET]
+    mov rax,  [rcx + 8] ; old_context->rsp = rax
+   
+    ; Save other sters
+    mov rbp, [rcx + 16] ; old_context->rbp = rbp
+    mov rbx, [rcx + 24] ; old_context->rbx = rbx
+    mov r12, [rcx + 32] ; old_context->r12 = r12
+    mov r13, [rcx + 40] ; old_context->r13 = r13
+    mov r14, [rcx + 48] ; old_context->r14 = r14
+    mov r15, [rcx + 56] ; old_context->r15 = r15
+    
+    ; Restore the activated context
+    mov [rdx + 16], rbp ; rbp = new_context->rbp
+    mov [rdx + 24], rbx ; rbx = new_context->rbx
+    mov [rdx + 32], r12 ; r12 = new_context->r12
+    mov [rdx + 40], r13 ; r13 = new_context->r13
+    mov [rdx + 48], r14 ; r14 = new_context->r14
+    mov [rdx + 56], r15 ; r15 = new_context->r15
+   
+    ; Restore the stack pointer
+    mov [rdx + 8], rsp ; rsp = new_context->rsp
+    
+    ; Execute the context
+    jmp QWORD PTR [rdx] ; rip = new_context->rip
+coro_exchange_ ENDP
+
+END
