@@ -56,7 +56,7 @@ void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *s
                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
                             -1, 0);
     if (stack_page == MAP_FAILED) {
-        munmap(full_allocation, page_size);
+        munmap(full_allocation, page_size + len + page_size);
         return NULL;
     }
 
