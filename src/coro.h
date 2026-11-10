@@ -43,5 +43,8 @@ coro_yield(void);
 Coro *
 coro_this(void);
 
+CoroState
+coro_state(Coro *coro);
+
 #define CORO_H_
 #endif

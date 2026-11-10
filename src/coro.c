@@ -85,7 +85,7 @@ void coro_reset(Coro *coro) {
         return;
     }
 
-    assert(coro->state == CORO_EXITED || coro->state == CORO_INIT);
+    assert(coro->state != CORO_ACTIVE);
 
     memset(&coro->reg, 0, sizeof coro->reg);
 
@@ -100,12 +100,15 @@ void coro_free(Coro *coro) {
         return;
     }
 
-    assert(coro->state == CORO_RESET);
-    assert(NULL == coro->entrypoint);
+    assert(coro->state == CORO_RESET || coro->state == CORO_EXITED);
     munmap(coro, coro->stack_size + sizeof *coro);
 }
 
 bool coro_swap(Coro *coro) {
+
+    if (coro && coro->state == CORO_EXITED) {
+        return false;
+    }
 
     assert(!coro || coro->state == CORO_INIT || coro->state == CORO_SUSPENDED);
 
@@ -162,4 +165,9 @@ Coro *coro_this(void) {
     return coro_this_;
 }
 
-
+CoroState coro_state(Coro *coro) {
+    if (coro) {
+        return coro->state;
+    }
+    return coro_this_ ? CORO_SUSPENDED : CORO_ACTIVE;
+}
