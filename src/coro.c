@@ -32,7 +32,7 @@ size_t coro_page_size(void) {
     return (size_t)size;
 }
 
-void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size) {
+void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *stack_offset, size_t *stack_size) {
     
     size_t len = min_stack_size;
     size_t page_size = coro_page_size();
@@ -42,23 +42,27 @@ void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size) {
         len += page_size - (len % page_size);
     }
 
-    void *full_allocation = mmap(NULL, len + page_size,
+    // Allocate both guard pages, and the stack
+    void *full_allocation = mmap(NULL, page_size + len + page_size,
                                  PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (full_allocation == MAP_FAILED) {
         return NULL;
     }
 
+    // Put the stack between both guard pages.
     void *guard_page_end = (void *)((uintptr_t)full_allocation + page_size);
-
     void *stack_page = mmap(guard_page_end, len,
-                            PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+                            PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
                             -1, 0);
     if (stack_page == MAP_FAILED) {
         munmap(full_allocation, page_size);
         return NULL;
     }
 
-    *mapped_size = page_size + len;
+    *stack_offset = page_size;
+    *stack_size = len;
+    *mapped_size = page_size + len + page_size;
     return full_allocation;
 }
 
@@ -69,17 +73,13 @@ Coro *coro_allocate(size_t min_stack_size) {
         return NULL;
     }
 
-    size_t allocated;
-    void *stack = coro_stack_allocate_(min_stack_size, &allocated);
+    coro->stack_mapping = coro_stack_allocate_(min_stack_size,
+            &coro->mapping_size, &coro->stack_offset, &coro->stack_size);
 
-    if (!stack) {
+    if (!coro->stack_mapping) {
         free(coro);
         return NULL;
     }
-
-    coro->stack_begin = stack;
-    coro->stack_size = allocated;
-
     return coro;
 }
 
@@ -89,11 +89,15 @@ void coro_init(Coro *coro, void (*entrypoint)(void *), void *arg) {
     coro->entrypoint = entrypoint;
     coro->arg = arg;
     coro->state = CORO_INIT;
-    
+
+    uint64_t stack_top = (uint64_t)coro->stack_mapping + coro->stack_offset + coro->stack_size;
+
     memset(&coro->reg, 0, sizeof coro->reg);
     coro->reg.rip = (uint64_t)&coro_execute_;
-    coro->reg.rbp = (uint64_t)coro->stack_begin + coro->stack_size - _Alignof(max_align_t);
-    coro->reg.rsp = coro->reg.rbp;
+    coro->reg.rbp = stack_top;
+    
+    // leave space for a return address and align to 16 bytes
+    coro->reg.rsp = (stack_top - 8) & (uint64_t)~0xf; 
 }
 
 void coro_reset(Coro *coro) {
@@ -123,7 +127,7 @@ void coro_free(Coro *coro) {
 
     assert(coro->state == CORO_RESET || coro->state == CORO_EXITED);
     
-    munmap(coro->stack_begin, coro->stack_size);
+    munmap(coro->stack_mapping, coro->mapping_size);
     
     memset(coro, 0, sizeof *coro);
     free(coro);
