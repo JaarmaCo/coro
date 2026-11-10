@@ -65,7 +65,8 @@ void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *s
     }
 #elif defined(_WIN32)
 
-    full_allocation = VirtualAlloc(NULL, page_size + len + page_size, 0, PAGE_GUARD);
+    full_allocation = VirtualAlloc(NULL, page_size + len + page_size,
+                                   MEM_RESERVE | MEM_COMMIT, PAGE_NOACCESS);
     if (NULL == full_allocation) {
         return NULL;
     }
@@ -84,13 +85,13 @@ void *coro_stack_allocate_(size_t min_stack_size, size_t *mapped_size, size_t *s
         return NULL;
     }
 #elif defined(_WIN32)
-    stack_page = VirtualAlloc(guard_page_end, len,
-                              MEM_COMMIT | MEM_RESERVE,
-                              PAGE_READWRITE);
-    if (NULL == stack_page) {
+    DWORD old;
+    if (!VirtualProtect(guard_page_end, len,
+                        PAGE_READWRITE, &old)) {
         VirtualFree(full_allocation, page_size + len + page_size, MEM_RELEASE);
         return NULL;
     }
+    stack_page = guard_page_end;
 #endif
 
     *stack_offset = page_size;
