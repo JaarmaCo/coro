@@ -4,4 +4,4 @@ gcc
 -Wpedantic
 -Werror
 -std=c11
-
+-Isrc

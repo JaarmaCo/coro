@@ -1,4 +1,4 @@
-#include "../src/coro.h"
+#include "coro.h"
 
 #include <assert.h>
 #include <stdbool.h>
