@@ -1,6 +1,6 @@
 # Coro
 
-This is a minimal C coroutine implementation targeting Linux and Windows on x64.
+This is a minimal C coroutine implementation targeting Linux (x64).
 
 Example usage:
 
