@@ -90,11 +90,11 @@ void coro_init(Coro *coro, void (*entrypoint)(void *), void *arg) {
     coro->arg = arg;
     coro->state = CORO_INIT;
 
-    uint64_t stack_top = (uint64_t)coro->stack_mapping + coro->stack_offset + coro->stack_size;
+    uintptr_t stack_top = (uintptr_t)coro->stack_mapping + coro->stack_offset + coro->stack_size;
 
     memset(&coro->reg, 0, sizeof coro->reg);
-    coro->reg.rip = (uint64_t)&coro_execute_;   
-    coro->reg.rsp = stack_top - 8;
+    coro->reg.rip = (uintptr_t)&coro_execute_;   
+    coro->reg.rsp = stack_top - sizeof(uintptr_t);
 }
 
 void coro_reset(Coro *coro) {
@@ -202,4 +202,8 @@ void coro_final_exchange_(CoroRegisters *context) {
     coro_exchange_(&reg, context);
 }
 
+#if __SIZEOF_POINTER__ == 4
+#include "coro_exchange_x86.c"
+#else
 #include "coro_exchange_x64.c"
+#endif
