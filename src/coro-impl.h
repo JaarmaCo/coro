@@ -8,18 +8,18 @@ typedef struct CoroRegisters CoroRegisters;
 
 struct CoroRegisters {
 
-    uint64_t rip; // instruction pointer
-    uint64_t rsp; // stack pointer
-    uint64_t rbp; // base pointer
+    uintptr_t rip; // instruction pointer
+    uintptr_t rsp; // stack pointer
+    uintptr_t rbp; // base pointer
     
     // saved registers
-    uint64_t rbx;
-    uint64_t r12;
-    uint64_t r13;
-    uint64_t r14;
-    uint64_t r15;
-    uint64_t rdi;
-    uint64_t rsi;
+    uintptr_t rbx;
+    uintptr_t r12;
+    uintptr_t r13;
+    uintptr_t r14;
+    uintptr_t r15;
+    uintptr_t rdi;
+    uintptr_t rsi;
 };
 
 struct Coro {
