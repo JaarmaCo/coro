@@ -43,6 +43,15 @@ int main(void) {
     }
     coro_free(coro);
 }
+
+#include <coro.c>
+```
+
+Coro is a unity build, so it can be compiled using a single call to a C compiler:
+
+```sh
+gcc -Isrc -o test test.c
+./test
 ```
 
 Output:
