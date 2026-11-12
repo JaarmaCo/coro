@@ -18,6 +18,8 @@ struct CoroRegisters {
     uint64_t r13;
     uint64_t r14;
     uint64_t r15;
+    uint64_t rdi;
+    uint64_t rsi;
 };
 
 struct Coro {
@@ -38,7 +40,7 @@ struct Coro {
 
 // Make new_context active and store a restorable context to old_context
 void
-coro_exchange_(CoroRegisters *old_context, CoroRegisters *new_context);
+coro_exchange_(CoroRegisters *old_context, const CoroRegisters *new_context);
 
 // Restore context, discarding the active context
 void

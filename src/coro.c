@@ -127,11 +127,13 @@ void coro_init(Coro *coro, void (*entrypoint)(void *), void *arg) {
     uint64_t stack_top = (uint64_t)coro->stack_mapping + coro->stack_offset + coro->stack_size;
 
     memset(&coro->reg, 0, sizeof coro->reg);
-    coro->reg.rip = (uint64_t)&coro_execute_;
-    coro->reg.rbp = stack_top;
-    
-    // leave space for a return address and align to 16 bytes
-    coro->reg.rsp = (stack_top - 8) & (uint64_t)~0xf; 
+    coro->reg.rip = (uint64_t)&coro_execute_;   
+    coro->reg.rsp = stack_top - 8;
+
+#ifdef _WIN32
+    coro->reg.rsp -= 32;
+    assert(coro->reg.rsp % 16 == 8);
+#endif
 }
 
 void coro_reset(Coro *coro) {
@@ -236,4 +238,9 @@ CoroState coro_state(Coro *coro) {
         return coro->state;
     }
     return coro_this_ ? CORO_SUSPENDED : CORO_ACTIVE;
+}
+
+void coro_final_exchange_(CoroRegisters *context) {
+    CoroRegisters reg;
+    coro_exchange_(&reg, context);
 }

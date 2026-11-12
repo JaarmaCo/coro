@@ -1,12 +1,11 @@
 CC := cl
 AS := ml64
-CFLAGS := /Wall /wd4820 /WX /std:c11 /Isrc /Zi
+CFLAGS := /Wall /wd4820 /WX /std:c11 /Isrc /Zi /DEBUG /Od
 
 OUTDIR := build/windows-x86_64
 
 OBJECTS := $(OUTDIR)/coro.obj \
-		   $(OUTDIR)/coro_exchange_.obj \
-		   $(OUTDIR)/coro_final_exchange_.obj
+		   $(OUTDIR)/coro_exchange_.obj
 
 $(OUTDIR)/coro.obj: src/coro.c
 	+@[ -f $(OUTDIR) ] || mkdir -p $(OUTDIR)
@@ -14,11 +13,7 @@ $(OUTDIR)/coro.obj: src/coro.c
 
 $(OUTDIR)/coro_exchange_.obj: src/windows-x86_64/coro_exchange_.masm
 	+@[ -f $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	$(AS) /c /Fo$@ $<
-
-$(OUTDIR)/coro_final_exchange_.obj: src/windows-x86_64/coro_final_exchange_.masm
-	+@[ -f $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	$(AS) /c /Fo$@ $<
+	$(AS) /c /Zi /DEBUG /Od /Fo$@ $<
 
 $(OUTDIR)/coro-unit.exe: test/coro-unit.c $(OBJECTS)
 	$(CC) $(CFLAGS) /Fe$@ $< $(OBJECTS)
