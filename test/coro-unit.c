@@ -276,3 +276,6 @@ main(void)
 
     return 0;
 }
+
+#include "coro.c"
+

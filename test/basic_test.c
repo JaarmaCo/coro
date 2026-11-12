@@ -31,3 +31,5 @@ int main(void) {
     coro_free(coro);
 }
 
+#include "coro.c"
+
