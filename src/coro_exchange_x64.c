@@ -9,7 +9,7 @@ void coro_exchange_(CoroRegisters *old_context __attribute__((unused)),
     __asm__("movq %rax, 0(%rdi) "); // old_context->rip = %rax
 
     // Save stack pointer to old_context->rsp
-    __asm__("movq 8(%rsp), %rax "); // %rax = stack_pointer[SP_OFFSET]
+    __asm__("leaq 8(%rsp), %rax "); // %rax = stack_pointer + SP_OFFSET
     __asm__("movq %rax,  8(%rdi)"); // old_context->rsp = %rax
    
     // Save other sters
