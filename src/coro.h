@@ -6,13 +6,11 @@
 typedef struct Coro Coro;
 
 typedef enum CoroState {
-
     CORO_RESET,
     CORO_INIT,
     CORO_ACTIVE,
     CORO_SUSPENDED,
     CORO_EXITED,
-
 } CoroState;
 
 size_t
