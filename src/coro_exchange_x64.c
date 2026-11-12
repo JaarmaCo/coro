@@ -1,6 +1,6 @@
 #include "coro-impl.h"
 
-__attribute__((naked))
+__attribute__((naked, sysv_abi))
 void coro_exchange_(CoroRegisters *old_context __attribute__((unused)),
         const CoroRegisters *new_context __attribute__((unused))) {
     
