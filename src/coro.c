@@ -93,8 +93,13 @@ void coro_init(Coro *coro, void (*entrypoint)(void *), void *arg) {
     uintptr_t stack_top = (uintptr_t)coro->stack_mapping + coro->stack_offset + coro->stack_size;
 
     memset(&coro->reg, 0, sizeof coro->reg);
+#if defined(__x86_64__)
     coro->reg.rip = (uintptr_t)&coro_execute_;   
     coro->reg.rsp = stack_top - sizeof(uintptr_t);
+#elif defined(__aarch64__)
+    coro->reg.sp = stack_top;
+    coro->reg.lr = (uintptr_t)&coro_execute_;
+#endif
 }
 
 void coro_reset(Coro *coro) {

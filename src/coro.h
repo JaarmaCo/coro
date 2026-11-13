@@ -11,7 +11,7 @@
 #   else
 #       error "Platform size not supported"
 #   endif
-#elif defined(__arm__)
+#elif defined(__aarch64__)
 #   if __SIZEOF_POINTER__ == 8
 #       define CORO_PLATFORM_arm64
 #   else

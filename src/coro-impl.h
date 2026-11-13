@@ -24,7 +24,7 @@ struct CoroRegisters {
     uintptr_t rsi;
 };
 
-#elif defined(__arm__)
+#elif defined(__aarch64__)
 
 struct CoroRegisters {
 
