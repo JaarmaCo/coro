@@ -202,8 +202,15 @@ void coro_final_exchange_(CoroRegisters *context) {
     coro_exchange_(&reg, context);
 }
 
-#if __SIZEOF_POINTER__ == 4
-#include "coro_exchange_x86.c"
-#else
-#include "coro_exchange_x64.c"
+#if defined (CORO_PLATFORM_x64)
+#   include "coro_exchange_x64.c"
 #endif
+
+#if defined (CORO_PLATFORM_x86)
+#   include "coro_exchange_x86.c"
+#endif
+
+#if defined (CORO_PLATFORM_arm64)
+#   include "coro_exchange_arm64.c"
+#endif
+

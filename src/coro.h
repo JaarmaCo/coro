@@ -3,6 +3,24 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#if defined(__x86_64__)
+#   if __SIZEOF_POINTER__ == 8
+#       define CORO_PLATFORM_x64
+#   elif __SIZEOF_POINTER__ == 4
+#       define CORO_PLATFORM_x86
+#   else
+#       error "Platform size not supported"
+#   endif
+#elif defined(__arm__)
+#   if __SIZEOF_POINTER__ == 8
+#       define CORO_PLATFORM_arm64
+#   else
+#       error "Platform not supported"
+#   endif
+#else
+#   error "Platform not supported"
+#endif
+
 typedef struct Coro Coro;
 
 typedef enum CoroState {
