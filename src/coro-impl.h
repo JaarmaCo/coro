@@ -6,6 +6,8 @@
 
 typedef struct CoroRegisters CoroRegisters;
 
+#ifdef __x86_64__
+
 struct CoroRegisters {
 
     uintptr_t rip; // instruction pointer
@@ -21,6 +23,28 @@ struct CoroRegisters {
     uintptr_t rdi;
     uintptr_t rsi;
 };
+
+#elif defined(__aarch64__)
+
+struct CoroRegisters {
+
+    uintptr_t lr; // link register (return address)
+    uintptr_t sp; // stack pointer
+
+    uintptr_t x19;
+    uintptr_t x20;
+    uintptr_t x21;
+    uintptr_t x22;
+    uintptr_t x23;
+    uintptr_t x24;
+    uintptr_t x25;
+    uintptr_t x26;
+    uintptr_t x27;
+    uintptr_t x28;
+    uintptr_t x29;
+};
+
+#endif
 
 struct Coro {
 
