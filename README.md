@@ -4,8 +4,8 @@ This is a minimal C coroutine implementation targeting Linux.
 
 ## Supported platforms
 
-- `x86_64` - 64 bit System-V ABI
-- `x86_64` - 32 bit mode cdecl ABI
+- `amd64` - 64 bit System-V ABI
+- `i686` - 32 bit cdecl ABI
 - `aarch64`
 
 ## Example usage
