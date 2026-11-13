@@ -1,4 +1,4 @@
-
+*.core
 *.pdb
 coro-unit
 a.out

@@ -1,8 +1,14 @@
 # Coro
 
-This is a minimal C coroutine implementation targeting Linux (x64 and x86).
+This is a minimal C coroutine implementation targeting Linux.
 
-Example usage:
+## Supported platforms
+
+- `x86_64` - 64 bit System-V ABI
+- `x86_64` - 32 bit mode cdecl ABI
+- `aarch64`
+
+## Example usage
 
 ```c
 #include <coro.h>
